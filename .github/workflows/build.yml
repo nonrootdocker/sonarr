@@ -1,4 +1,4 @@
-name: Build SABnzbd Image
+name: Build OCI Image
 
 on:
   push:
@@ -8,11 +8,10 @@ on:
 permissions:
   contents: read
   packages: write
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -38,23 +37,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Load Image into Docker
+      - name: Get image name from Docker
         if: github.event_name != 'pull_request'
+        id: image_meta
         run: |
-          docker load < result
+          IMAGE_NAME=$(docker load < result 2>&1 | grep "Loaded image:" | awk '{print $NF}')
+          echo "local_image=${IMAGE_NAME}" >> $GITHUB_OUTPUT
 
       - name: Tag and Push Image
         if: github.event_name != 'pull_request'
         run: |
-          # Convert repository owner to lowercase for registry compliance
-          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          
-          # Match the local name defined in your flake.nix
-          LOCAL_IMAGE="minimalbase-ng:latest"
           TARGET_IMAGE="ghcr.io/${{ github.repository }}"
-          
-          docker tag "$LOCAL_IMAGE" "${TARGET_IMAGE}:latest"
-          docker tag "$LOCAL_IMAGE" "${TARGET_IMAGE}:${{ github.sha }}"
-          
+
+          docker tag "${{ steps.image_meta.outputs.local_image }}" "${TARGET_IMAGE}:latest"
+          docker tag "${{ steps.image_meta.outputs.local_image }}" "${TARGET_IMAGE}:${{ github.sha }}"
+
           docker push "${TARGET_IMAGE}:latest"
-          docker push "${TARGET_IMAGE}:${{ github.sha }}"        
+          docker push "${TARGET_IMAGE}:${{ github.sha }}"

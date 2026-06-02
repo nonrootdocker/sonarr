@@ -1,18 +1,5 @@
 {
   "nodes": {
-    "jackett-src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1780268406,
-        "narHash": "sha256-UN2rlFMht7T60srjx8KPB3zy3Qc1HxGUsQv/fzLhIVs=",
-        "type": "tarball",
-        "url": "https://github.com/Jackett/Jackett/releases/latest/download/Jackett.Binaries.LinuxAMDx64.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://github.com/Jackett/Jackett/releases/latest/download/Jackett.Binaries.LinuxAMDx64.tar.gz"
-      }
-    },
     "minimalbase": {
       "inputs": {
         "nixpkgs": "nixpkgs"
@@ -48,12 +35,24 @@
     },
     "root": {
       "inputs": {
-        "jackett-src": "jackett-src",
         "minimalbase": "minimalbase",
         "nixpkgs": [
           "minimalbase",
           "nixpkgs"
-        ]
+        ],
+        "sonarr-src": "sonarr-src"
+      }
+    },
+    "sonarr-src": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-s/7c4G7sYTVQut6Kd6KQlPggx4MKSIZdPOM4dEdKvoY=",
+        "type": "file",
+        "url": "https://services.sonarr.tv/v1/download/main/latest?arch=x64&os=linux&version=4"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://services.sonarr.tv/v1/download/main/latest?arch=x64&os=linux&version=4"
       }
     }
   },

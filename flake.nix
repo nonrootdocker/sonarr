@@ -1,8 +1,8 @@
 {
-  description = "minimalbase-ng + sonarr service";
+  description = "minimalbase + sonarr service";
   inputs = {
     nixpkgs.follows = "minimalbase/nixpkgs";
-    minimalbase.url = "github:nonrootdocker/minimalbase-ng";
+    minimalbase.url = "github:nonrootdocker/minimalbase";
     sonarr-src = {
       url = "https://services.sonarr.tv/v1/download/main/latest?version=4&os=linux&arch=x64";
       flake = false;
@@ -75,7 +75,7 @@
     packages.${system} = {
       default = self.packages.${system}.sonarr-image;
       sonarr-image = pkgs.dockerTools.buildImage {
-        name = "minimalbase-ng";
+        name = "minimalbase";
         tag = "latest";
         fromImage = minimalbase.packages.${system}.base-image;
         copyToRoot = pkgs.buildEnv {

@@ -4,6 +4,7 @@
     nixpkgs.follows = "minimalbase/nixpkgs";
     minimalbase.url = "github:nonrootdocker/minimalbase";
     sonarr-src = {
+      type = "tarball";
       url = "https://services.sonarr.tv/v1/download/main/latest?version=4&os=linux&arch=x64";
       flake = false;
     };
@@ -20,11 +21,26 @@
     opensslLib = pkgs.openssl.out;
     sqliteLib = pkgs.sqlite.out;
     # ----------------------------
+    # Sonarr version (read from the release's deps.json, so it always
+    # matches the exact binary pinned by the sonarr-src lock entry)
+    # ----------------------------
+    sonarrDeps =
+      let
+        p1 = "${sonarr-src}/Sonarr.deps.json";
+        p2 = "${sonarr-src}/Sonarr/Sonarr.deps.json";
+      in if builtins.pathExists p1 then p1 else p2;
+    sonarrVersion =
+      let
+        deps = builtins.fromJSON (builtins.readFile sonarrDeps);
+        keys = builtins.attrNames deps.libraries;
+        key = builtins.head (builtins.filter (k: builtins.match "Sonarr/.*" k != null) keys);
+      in pkgs.lib.removePrefix "Sonarr/" key;
+    # ----------------------------
     # Sonarr package
     # ----------------------------
     sonarr = pkgs.stdenv.mkDerivation {
       pname = "sonarr";
-      version = "latest";
+      version = sonarrVersion;
       src = sonarr-src;
       nativeBuildInputs = [
         pkgs.autoPatchelfHook
@@ -39,12 +55,9 @@
         pkgs.lttng-ust_2_12
         pkgs.stdenv.cc.cc.lib
       ];
-      unpackPhase = ''
-        tar -xzf $src
-      '';
       installPhase = ''
-        mkdir -p $out/app
-        cp -r . $out/app/
+        mkdir -p $out/app/Sonarr
+        cp -r . $out/app/Sonarr/
       '';
     };
     # ----------------------------
@@ -76,7 +89,7 @@
       default = self.packages.${system}.sonarr-image;
       sonarr-image = pkgs.dockerTools.buildImage {
         name = "minimalbase";
-        tag = "latest";
+        tag = sonarrVersion;
         fromImage = minimalbase.packages.${system}.base-image;
         copyToRoot = pkgs.buildEnv {
           name = "root";

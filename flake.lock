@@ -46,13 +46,14 @@
     "sonarr-src": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-s/7c4G7sYTVQut6Kd6KQlPggx4MKSIZdPOM4dEdKvoY=",
-        "type": "file",
-        "url": "https://services.sonarr.tv/v1/download/main/latest?arch=x64&os=linux&version=4"
+        "lastModified": 1773932068,
+        "narHash": "sha256-4OeqDufqO+ku7SevdDVizbhSNFGxceI3i5zyMGdKCis=",
+        "type": "tarball",
+        "url": "https://services.sonarr.tv/v1/download/main/latest?version=4&os=linux&arch=x64"
       },
       "original": {
-        "type": "file",
-        "url": "https://services.sonarr.tv/v1/download/main/latest?arch=x64&os=linux&version=4"
+        "type": "tarball",
+        "url": "https://services.sonarr.tv/v1/download/main/latest?version=4&os=linux&arch=x64"
       }
     }
   },

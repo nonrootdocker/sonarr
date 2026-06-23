@@ -2,6 +2,7 @@ name: Build OCI Image
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -14,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
@@ -48,9 +49,12 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           TARGET_IMAGE="ghcr.io/${{ github.repository }}"
+          LOCAL_IMAGE="${{ steps.image_meta.outputs.local_image }}"
+          # The Nix image tag is the Sonarr version (e.g. minimalbase:4.0.17)
+          VERSION="${LOCAL_IMAGE##*:}"
 
-          docker tag "${{ steps.image_meta.outputs.local_image }}" "${TARGET_IMAGE}:latest"
-          docker tag "${{ steps.image_meta.outputs.local_image }}" "${TARGET_IMAGE}:${{ github.sha }}"
+          docker tag "${LOCAL_IMAGE}" "${TARGET_IMAGE}:${VERSION}"
+          docker tag "${LOCAL_IMAGE}" "${TARGET_IMAGE}:latest"
 
+          docker push "${TARGET_IMAGE}:${VERSION}"
           docker push "${TARGET_IMAGE}:latest"
-          docker push "${TARGET_IMAGE}:${{ github.sha }}"

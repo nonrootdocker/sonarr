@@ -50,8 +50,8 @@ jobs:
         run: |
           TARGET_IMAGE="ghcr.io/${{ github.repository }}"
           LOCAL_IMAGE="${{ steps.image_meta.outputs.local_image }}"
-          # The Nix image tag is the Sonarr version (e.g. minimalbase:4.0.17)
-          VERSION="${LOCAL_IMAGE##*:}"
+          # Actual upstream version, read from the flake's version output
+          VERSION="$(cat "$(nix build --no-link --print-out-paths .#packages.x86_64-linux.version)")"
 
           docker tag "${LOCAL_IMAGE}" "${TARGET_IMAGE}:${VERSION}"
           docker tag "${LOCAL_IMAGE}" "${TARGET_IMAGE}:latest"

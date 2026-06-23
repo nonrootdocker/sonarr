@@ -21,26 +21,11 @@
     opensslLib = pkgs.openssl.out;
     sqliteLib = pkgs.sqlite.out;
     # ----------------------------
-    # Sonarr version (read from the release's deps.json, so it always
-    # matches the exact binary pinned by the sonarr-src lock entry)
-    # ----------------------------
-    sonarrDeps =
-      let
-        p1 = "${sonarr-src}/Sonarr.deps.json";
-        p2 = "${sonarr-src}/Sonarr/Sonarr.deps.json";
-      in if builtins.pathExists p1 then p1 else p2;
-    sonarrVersion =
-      let
-        deps = builtins.fromJSON (builtins.readFile sonarrDeps);
-        keys = builtins.attrNames deps.libraries;
-        key = builtins.head (builtins.filter (k: builtins.match "Sonarr/.*" k != null) keys);
-      in pkgs.lib.removePrefix "Sonarr/" key;
-    # ----------------------------
     # Sonarr package
     # ----------------------------
     sonarr = pkgs.stdenv.mkDerivation {
       pname = "sonarr";
-      version = sonarrVersion;
+      version = "release";
       src = sonarr-src;
       nativeBuildInputs = [
         pkgs.autoPatchelfHook
@@ -60,6 +45,18 @@
         cp -r . $out/app/Sonarr/
       '';
     };
+    # ----------------------------
+    # Sonarr version: the real product version is embedded in Core.dll as
+    # the assembly reference "Sonarr.Common, Version=N.N.N.N" (consistent
+    # across Servarr apps). Exposed as the `version` output for CI tagging.
+    # ----------------------------
+    sonarrVersion = pkgs.runCommand "sonarr-version" {
+      nativeBuildInputs = [ pkgs.binutils ];
+    } ''
+      strings ${sonarr}/app/Sonarr/Sonarr.Core.dll \
+        | grep -oE 'Sonarr\.Common, Version=[0-9.]+' \
+        | head -n1 | sed 's/.*Version=//' | tr -d '\n' > $out
+    '';
     # ----------------------------
     # User database configuration (/etc/passwd)
     # ----------------------------
@@ -87,9 +84,10 @@
   in {
     packages.${system} = {
       default = self.packages.${system}.sonarr-image;
+      version = sonarrVersion;
       sonarr-image = pkgs.dockerTools.buildImage {
-        name = "minimalbase";
-        tag = sonarrVersion;
+        name = "sonarr";
+        tag = "latest";
         fromImage = minimalbase.packages.${system}.base-image;
         copyToRoot = pkgs.buildEnv {
           name = "root";

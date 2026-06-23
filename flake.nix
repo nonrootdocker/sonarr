@@ -4,6 +4,7 @@
     nixpkgs.follows = "minimalbase/nixpkgs";
     minimalbase.url = "github:nonrootdocker/minimalbase";
     sonarr-src = {
+      type = "tarball";
       url = "https://services.sonarr.tv/v1/download/main/latest?version=4&os=linux&arch=x64";
       flake = false;
     };
@@ -24,7 +25,7 @@
     # ----------------------------
     sonarr = pkgs.stdenv.mkDerivation {
       pname = "sonarr";
-      version = "latest";
+      version = "release";
       src = sonarr-src;
       nativeBuildInputs = [
         pkgs.autoPatchelfHook
@@ -39,14 +40,22 @@
         pkgs.lttng-ust_2_12
         pkgs.stdenv.cc.cc.lib
       ];
-      unpackPhase = ''
-        tar -xzf $src
-      '';
       installPhase = ''
-        mkdir -p $out/app
-        cp -r . $out/app/
+        mkdir -p $out/app/Sonarr
+        cp -r . $out/app/Sonarr/
       '';
     };
+    # ----------------------------
+    # Sonarr version: read the product version from the assembly manifest of
+    # Sonarr.Core.dll via monodis (the proper tool, robust vs string scraping).
+    # Exposed as the `version` output for CI tagging.
+    # ----------------------------
+    sonarrVersion = pkgs.runCommand "sonarr-version" {
+      nativeBuildInputs = [ pkgs.mono ];
+    } ''
+      monodis --assembly ${sonarr}/app/Sonarr/Sonarr.Core.dll \
+        | awk '$1 == "Version:" { print $2; exit }' | tr -d '\n' > $out
+    '';
     # ----------------------------
     # User database configuration (/etc/passwd)
     # ----------------------------
@@ -74,8 +83,9 @@
   in {
     packages.${system} = {
       default = self.packages.${system}.sonarr-image;
+      version = sonarrVersion;
       sonarr-image = pkgs.dockerTools.buildImage {
-        name = "minimalbase";
+        name = "sonarr";
         tag = "latest";
         fromImage = minimalbase.packages.${system}.base-image;
         copyToRoot = pkgs.buildEnv {

@@ -1,4 +1,4 @@
-name: Dependabot Auto Merge
+name: Auto Merge
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   auto-merge:
-    if: github.actor == 'dependabot[bot]'
+    if: github.actor == 'dependabot[bot]' || contains(github.event.pull_request.labels.*.name, 'automated')
     runs-on: ubuntu-latest
 
     steps:

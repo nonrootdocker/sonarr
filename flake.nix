@@ -46,16 +46,15 @@
       '';
     };
     # ----------------------------
-    # Sonarr version: the real product version is embedded in Core.dll as
-    # the assembly reference "Sonarr.Common, Version=N.N.N.N" (consistent
-    # across Servarr apps). Exposed as the `version` output for CI tagging.
+    # Sonarr version: read the product version from the assembly manifest of
+    # Sonarr.Core.dll via monodis (the proper tool, robust vs string scraping).
+    # Exposed as the `version` output for CI tagging.
     # ----------------------------
     sonarrVersion = pkgs.runCommand "sonarr-version" {
-      nativeBuildInputs = [ pkgs.binutils ];
+      nativeBuildInputs = [ pkgs.mono ];
     } ''
-      strings ${sonarr}/app/Sonarr/Sonarr.Core.dll \
-        | grep -oE 'Sonarr\.Common, Version=[0-9.]+' \
-        | head -n1 | sed 's/.*Version=//' | tr -d '\n' > $out
+      monodis --assembly ${sonarr}/app/Sonarr/Sonarr.Core.dll \
+        | awk '$1 == "Version:" { print $2; exit }' | tr -d '\n' > $out
     '';
     # ----------------------------
     # User database configuration (/etc/passwd)

@@ -46,8 +46,8 @@
     "sonarr-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1782494541,
-        "narHash": "sha256-Rigw2zApuLqaK2Nvz7GlzOjMA+zNnIHqARKe2z5UuFE=",
+        "lastModified": 1789576708,
+        "narHash": "sha256-OtrHihFIa9lq0fyfDp+6fVh+bKXeqJSrmXmxLpoelfA=",
         "type": "tarball",
         "url": "https://services.sonarr.tv/v1/download/main/latest?version=4&os=linux&arch=x64"
       },
